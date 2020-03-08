@@ -130,4 +130,11 @@ define concat::fragment(
     alias   => "concat_fragment_${name}",
     notify  => Exec["concat_${target}"]
   }
+
+  if $::operatingsystem == 'windows' {
+    File["${fragdir}/fragments/${order}_${safe_name}"] {
+      source_permissions => ignore, 
+    }
+  }
+
 }

@@ -157,6 +157,13 @@ define concat(
   }
 
   if $ensure == 'present' {
+
+    if $::operatingsystem == 'windows' {
+      File {
+        source_permissions => ignore, 
+      }
+    }
+
     file { $fragdir:
       ensure => directory,
       mode   => '0750',
