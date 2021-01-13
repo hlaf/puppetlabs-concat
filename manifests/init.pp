@@ -29,6 +29,7 @@
 #   Whether to replace a file that already exists on the local system
 # [*order*]
 # [*ensure_newline*]
+# [*linebreak_mode*]
 # [*gnu*]
 #   Deprecated
 #
@@ -64,6 +65,7 @@ define concat(
   $replace        = true,
   $order          = 'alpha',
   $ensure_newline = false,
+  $linebreak_mode = undef,
   $validate_cmd   = undef,
   $gnu            = undef
 ) {
@@ -146,6 +148,12 @@ define concat(
     false => '',
   }
 
+  $linebreakmodeflag = $linebreak_mode ? {
+    'unix'  => '-c unix',
+    'dos'   => '-c dos',
+    default => '',
+  }
+
   File {
     backup  => $backup,
   }
@@ -209,7 +217,7 @@ define concat(
     }
 
     # remove extra whitespace from string interpolation to make testing easier
-    $command = strip(regsubst("${script_command} -o \"${fragdir}/${concat_name}\" -d \"${fragdir}\" ${warnflag} ${forceflag} ${orderflag} ${newlineflag}", '\s+', ' ', 'G'))
+    $command = strip(regsubst("${script_command} -o \"${fragdir}/${concat_name}\" -d \"${fragdir}\" ${warnflag} ${forceflag} ${orderflag} ${newlineflag} ${linebreakmodeflag}", '\s+', ' ', 'G'))
 
     # make sure ruby is in the path for PE
     if defined('$is_pe') and str2bool("${::is_pe}") { # lint:ignore:only_variable_string

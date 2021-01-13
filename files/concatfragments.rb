@@ -46,7 +46,8 @@ settings = {
     :force => false,
     :warn => "",
     :sortarg => "",
-    :newline => false
+    :newline => false,
+    :convmode => nil
 }
 
 OptionParser.new do |opts|
@@ -82,6 +83,10 @@ OptionParser.new do |opts|
   opts.on("-l", "--line", "Append a newline") do
     settings[:newline] = true
   end
+
+  opts.on("-c", "--convmode", String, "Line break conversion mode") do |c|
+    settings[:convmode] = c
+  end
 end.parse!
 
 # do we have -o?
@@ -115,21 +120,29 @@ end
 
 Dir.chdir(settings[:workdir])
 
+mode = lambda do |m|
+  return m if settings[:convmode].to_s.empty?
+  return m + 'b' if settings[:convmode] == 'unix'
+  raise "Unknown conversion mode: #{settings[:convmode]}" 
+end
+
 if settings[:warn].empty?
-  File.open("fragments.concat", 'w') { |f| f.write("") }
+  File.open("fragments.concat", mode['w']) { |f| f.write("") }
 else
-  File.open("fragments.concat", 'w') { |f| f.write("#{settings[:warn]}\n") }
+  File.open("fragments.concat", mode['w']) { |f| f.write("#{settings[:warn]}\n") }
 end
 
 # find all the files in the fragments directory, sort them numerically and concat to fragments.concat in the working dir
-open('fragments.concat', 'a') do |f|
+open('fragments.concat', mode['a']) do |f|
   fragments = Dir.entries("fragments").sort
   if settings[:sortarg] == '-n'
     fragments = fragments.sort_by { |v| v.split('_').map(&:to_i) }
   end
   fragments.each { |entry|
     if File.file?(File.join("fragments", entry))
-      f << File.read(File.join("fragments", entry))
+      open(File.join("fragments", entry), mode['r']) do |f_in|
+        f << f_in.read()
+      end
 
       # append a newline if we were asked to (invoked with -l)
       if settings[:newline]
