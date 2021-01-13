@@ -84,7 +84,7 @@ OptionParser.new do |opts|
     settings[:newline] = true
   end
 
-  opts.on("-c", "--convmode", String, "Line break conversion mode") do |c|
+  opts.on("-c", "--convmode CONVMODE", String, "Line break conversion mode") do |c|
     settings[:convmode] = c
   end
 end.parse!
